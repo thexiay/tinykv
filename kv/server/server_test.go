@@ -42,6 +42,8 @@ func Iter(s *standalone_storage.StandAloneStorage, cf string) (engine_util.DBIte
 
 func cleanUpTestData(conf *config.Config) error {
 	if conf != nil {
+		os.RemoveAll("/tmp/badger")
+		os.RemoveAll("/tmp/badger_log")
 		return os.RemoveAll(conf.DBPath)
 	}
 	return nil
@@ -195,9 +197,12 @@ func TestRawDelete1(t *testing.T) {
 	_, err := server.RawDelete(nil, req)
 	assert.Nil(t, err)
 
-	val, err := Get(s, cf, []byte{99})
+	val, err := server.RawGet(nil, &kvrpcpb.RawGetRequest{
+		Key: []byte{99},
+		Cf:  cf,
+	})
 	assert.Equal(t, nil, err)
-	assert.Equal(t, []byte(nil), val)
+	assert.Equal(t, []byte(nil), val.Value)
 }
 
 func TestRawScan1(t *testing.T) {
